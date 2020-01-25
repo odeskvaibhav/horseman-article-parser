@@ -274,7 +274,12 @@ const articleParser = async function (options, socket) {
   }
 
   // Turn relative links into absolute links & assign processed html
-  article.processed.html = await absolutify(content, article.baseurl)
+  
+  if(options.skipContent !== 'true') {
+    article.processed.html = await absolutify(content, article.baseurl);
+  } else {
+    article.processed.html = ''  
+  }
 
   // Get in article links
   if (options.enabled.includes('links')) {
@@ -295,14 +300,27 @@ const articleParser = async function (options, socket) {
     Object.assign(article.links, links)
   }
 
-  // Formatted Text (including new lines and spacing for spell check)
-  article.processed.text.formatted = await getFormattedText(article.processed.html, article.title.text, article.baseurl, options.htmltotext)
+  if(options.skipContent !== 'true') {
+    // Formatted Text (including new lines and spacing for spell check)
+    article.processed.text.formatted = await getFormattedText(article.processed.html, article.title.text, article.baseurl, options.htmltotext)
 
-  // HTML Text (spans on each line for spell check line numbers)
-  article.processed.text.html = await getHtmlText(article.processed.text.formatted)
+    // HTML Text (spans on each line for spell check line numbers)
+    article.processed.text.html = ''
 
-  // Raw Text (text prepared for keyword analysis & named entity recongnition)
-  article.processed.text.raw = await getRawText(article.processed.html)
+    // Raw Text (text prepared for keyword analysis & named entity recongnition)
+    article.processed.text.raw = ''
+
+    article.processed.html = ''
+  } else {
+     // Formatted Text (including new lines and spacing for spell check)
+    article.processed.text.formatted = ''
+
+    // HTML Text (spans on each line for spell check line numbers)
+    article.processed.text.html = ''
+
+    // Raw Text (text prepared for keyword analysis & named entity recongnition)
+    article.processed.text.raw = ''
+  }
 
   // Excerpt
   article.excerpt = helpers.capitalizeFirstLetter(article.processed.text.raw.replace(/^(.{200}[^\s]*).*/, '$1'))
